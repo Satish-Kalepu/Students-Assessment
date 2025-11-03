@@ -1,4 +1,3 @@
-
 import React from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '../../components/Card';
 
@@ -6,8 +5,8 @@ const AdminDashboardPage: React.FC = () => {
     // In a real app, you would fetch this data
     const stats = {
         students: 4,
-        assessments: 0,
-        assignments: 0,
+        assessments: 1,
+        assignments: 1,
         completedExams: 0
     };
 

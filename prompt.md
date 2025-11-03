@@ -89,7 +89,8 @@ Modules:
 
 
 always generate below files after every change
-/.prompt.md   which can be used to recreate the project from scratch
-/.sql_schema.sql   which can be used to initialize sql database
+/prompt.md   which can be used to recreate the project from scratch
+/sql_schema.sql   which can be used to initialize sql database
+/requirements.txt which can be used to list the project dependencies
 
 you can create sample basic arithmatic and reasioning questions in the database for demo.

@@ -1,4 +1,3 @@
-
 import { 
     AdminUser, 
     Student, 
@@ -19,10 +18,10 @@ let db = {
         { id: 1, username: 'admin', password: 'admin', createdOn: new Date().toISOString() }
     ] as AdminUser[],
     students: [
-        { id: 1, name: 'Alice Johnson', email: 'alice@example.com', mobile: '1234567890', year_of_pass: 2023, date_of_registration: '2023-01-15', stream: Stream.ComputerScience },
-        { id: 2, name: 'Bob Smith', email: 'bob@example.com', mobile: '2345678901', year_of_pass: 2023, date_of_registration: '2023-02-20', stream: Stream.Mechanical },
-        { id: 3, name: 'Charlie Brown', email: 'charlie@example.com', mobile: '3456789012', year_of_pass: 2024, date_of_registration: '2023-03-10', stream: Stream.ComputerScience },
-        { id: 4, name: 'Diana Prince', email: 'diana@example.com', mobile: '4567890123', year_of_pass: 2024, date_of_registration: '2023-04-05', stream: Stream.Electrical },
+        { id: 1, name: 'Alice Johnson', email: 'alice@example.com', mobile: '1234567890', year_of_pass: 2023, date_of_registration: '2023-01-15', stream: Stream.ComputerScience, college: 'State University' },
+        { id: 2, name: 'Bob Smith', email: 'bob@example.com', mobile: '2345678901', year_of_pass: 2023, date_of_registration: '2023-02-20', stream: Stream.Mechanical, college: 'Institute of Technology' },
+        { id: 3, name: 'Charlie Brown', email: 'charlie@example.com', mobile: '3456789012', year_of_pass: 2024, date_of_registration: '2023-03-10', stream: Stream.ComputerScience, college: 'State University' },
+        { id: 4, name: 'Diana Prince', email: 'diana@example.com', mobile: '4567890123', year_of_pass: 2024, date_of_registration: '2023-04-05', stream: Stream.Electrical, college: 'City College' },
     ] as Student[],
     skills: [
         { id: 1, name: 'Basic Arithmetic', description: 'Questions involving addition, subtraction, multiplication, and division.' },
@@ -37,9 +36,35 @@ let db = {
         { id: 6, skill_id: 2, question: 'If all Bloops are Razzies and all Razzies are Lazzies, are all Bloops definitely Lazzies?', type: 'choice', option1: 'Yes', option2: 'No', option3: 'Cannot be determined', option4: 'Maybe', correct_option: 1, test_cases: undefined },
         { id: 7, skill_id: 2, question: "A man is looking at a portrait. Someone asks him whose portrait he is looking at. He replies, \"Brothers and sisters I have none, but that man's father is my father's son.\" Who is in the portrait?", type: 'answer', expected_answer: 'His son', test_cases: undefined }
     ] as Question[],
-    assessments: [] as Assessment[],
-    assignments: [] as Assignment[],
-    assignment_students: [] as AssignmentStudent[],
+    assessments: [
+        {
+            id: 1,
+            name: 'Basic Skills Test',
+            description: 'A test on basic arithmetic and logical reasoning skills.',
+            skills: [
+                { skill_id: 1, questions: 2, pick: 'random' },
+                { skill_id: 2, questions: 2, pick: 'random' }
+            ],
+            duration: 10,
+            maxQuestions: 4
+        }
+    ] as Assessment[],
+    assignments: [
+        {
+            id: 1,
+            name_of_assignment: 'General Aptitude - June 2024',
+            date_of_assignment: '2024-06-15',
+            assessment_id: 1,
+            total_students: 4,
+            attendees: 0,
+        }
+    ] as Assignment[],
+    assignment_students: [
+        { id: 1, assignment_id: 1, student_id: 1, code: 'ALICE1', attended: false },
+        { id: 2, assignment_id: 1, student_id: 2, code: 'BOB2', attended: false },
+        { id: 3, assignment_id: 1, student_id: 3, code: 'CHARLIE3', attended: false },
+        { id: 4, assignment_id: 1, student_id: 4, code: 'DIANA4', attended: false },
+    ] as AssignmentStudent[],
     assignment_answers: [] as AssignmentAnswer[],
     student_log: [] as any[],
 };
@@ -67,8 +92,8 @@ export const api = {
         const lines = csvText.split('\n').slice(1); // Skip header
         let success = 0;
         lines.forEach(line => {
-            const [name, email, mobile, year_of_pass, date_of_registration, stream] = line.split(',');
-            if (name && email && year_of_pass && date_of_registration && stream) {
+            const [name, email, mobile, year_of_pass, date_of_registration, stream, college] = line.split(',');
+            if (name && email && year_of_pass && date_of_registration && stream && college) {
                 if (!db.students.some(s => s.email === email.trim())) {
                     const newStudent: Student = {
                         id: db.students.length + 1,
@@ -78,6 +103,7 @@ export const api = {
                         year_of_pass: parseInt(year_of_pass.trim()),
                         date_of_registration: date_of_registration.trim(),
                         stream: stream.trim() as Stream,
+                        college: college.trim(),
                     };
                     db.students.push(newStudent);
                     success++;
@@ -87,11 +113,46 @@ export const api = {
         return simulateDelay({ success, failed: lines.length - success });
     },
     
+    getStudentFilterOptions: async () => {
+        const colleges = new Set<string>();
+        const years = new Set<number>();
+        const dates = new Set<string>();
+        const streams = new Set<Stream>();
+
+        db.students.forEach(student => {
+            colleges.add(student.college);
+            years.add(student.year_of_pass);
+            dates.add(student.date_of_registration);
+            streams.add(student.stream);
+        });
+
+        return simulateDelay({
+            colleges: Array.from(colleges).sort(),
+            years: Array.from(years).sort((a, b) => b - a), // Sort descending
+            dates: Array.from(dates).sort(),
+            streams: Array.from(streams).sort(),
+        });
+    },
+
     getSkills: () => simulateDelay(db.skills),
     createSkill: async (skill: Omit<Skill, 'id'>): Promise<Skill> => {
         const newSkill = { ...skill, id: db.skills.length + 1 };
         db.skills.push(newSkill);
         return simulateDelay(newSkill);
+    },
+    updateSkill: async (skill: Skill): Promise<Skill> => {
+        const index = db.skills.findIndex(s => s.id === skill.id);
+        if (index !== -1) {
+            db.skills[index] = { ...db.skills[index], ...skill };
+            return simulateDelay(db.skills[index]);
+        }
+        throw new Error("Skill not found");
+    },
+    deleteSkill: async (skillId: number): Promise<void> => {
+        db.skills = db.skills.filter(s => s.id !== skillId);
+        // Also delete associated questions
+        db.skill_questions = db.skill_questions.filter(q => q.skill_id !== skillId);
+        return simulateDelay(undefined);
     },
 
     getQuestionsForSkill: async (skillId: number): Promise<Question[]> => {
@@ -102,6 +163,18 @@ export const api = {
         db.skill_questions.push(newQuestion);
         return simulateDelay(newQuestion);
     },
+    updateQuestion: async (question: Question): Promise<Question> => {
+        const index = db.skill_questions.findIndex(q => q.id === question.id);
+        if (index !== -1) {
+            db.skill_questions[index] = { ...db.skill_questions[index], ...question };
+            return simulateDelay(db.skill_questions[index]);
+        }
+        throw new Error("Question not found");
+    },
+    deleteQuestion: async (questionId: number): Promise<void> => {
+        db.skill_questions = db.skill_questions.filter(q => q.id !== questionId);
+        return simulateDelay(undefined);
+    },
 
     getAssessments: () => simulateDelay(db.assessments),
     createAssessment: async (assessment: Omit<Assessment, 'id'>): Promise<Assessment> => {
@@ -111,7 +184,7 @@ export const api = {
     },
 
     getAssignments: () => simulateDelay(db.assignments),
-    createAssignment: async (data: { name_of_assignment: string; assessment_id: number; year_of_pass?: number; stream?: Stream }): Promise<Assignment> => {
+    createAssignment: async (data: { name_of_assignment: string; assessment_id: number; year_of_pass?: number; stream?: Stream; college?: string; date_of_registration?: string; }): Promise<Assignment> => {
         const newAssignment: Assignment = {
             id: db.assignments.length + 1,
             name_of_assignment: data.name_of_assignment,
@@ -129,6 +202,12 @@ export const api = {
         if (data.stream) {
             filteredStudents = filteredStudents.filter(s => s.stream === data.stream);
         }
+        if (data.college) {
+            filteredStudents = filteredStudents.filter(s => s.college.toLowerCase().includes(data.college!.toLowerCase().trim()));
+        }
+        if (data.date_of_registration) {
+            filteredStudents = filteredStudents.filter(s => s.date_of_registration === data.date_of_registration);
+        }
 
         newAssignment.total_students = filteredStudents.length;
 
@@ -144,6 +223,11 @@ export const api = {
         });
 
         return simulateDelay(newAssignment);
+    },
+    deleteAssignment: async (assignmentId: number): Promise<void> => {
+        db.assignments = db.assignments.filter(a => a.id !== assignmentId);
+        db.assignment_students = db.assignment_students.filter(as => as.assignment_id !== assignmentId);
+        return simulateDelay(undefined);
     },
     getAssignmentStudentDetails: (assignmentId: number) => {
         return simulateDelay(db.assignment_students.filter(as => as.assignment_id === assignmentId).map(as => {

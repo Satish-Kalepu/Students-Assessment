@@ -33,6 +33,7 @@ export interface Student {
     year_of_pass: number;
     date_of_registration: string;
     stream: Stream;
+    college: string;
 }
 
 export interface Skill {

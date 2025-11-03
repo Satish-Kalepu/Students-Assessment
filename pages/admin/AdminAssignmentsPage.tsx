@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect, FormEvent } from 'react';
 import { api } from '../../services/mockApi';
 import { Assignment, Assessment, Stream } from '../../types';
@@ -17,20 +16,35 @@ const AdminAssignmentsPage: React.FC = () => {
     const [selectedAssessmentId, setSelectedAssessmentId] = useState<number | undefined>();
     const [filterYear, setFilterYear] = useState<number | undefined>();
     const [filterStream, setFilterStream] = useState<Stream | ''>('');
+    const [filterCollege, setFilterCollege] = useState('');
+    const [filterDate, setFilterDate] = useState('');
+    
+    const [filterOptions, setFilterOptions] = useState<{
+        colleges: string[];
+        years: number[];
+        dates: string[];
+        streams: Stream[];
+    }>({ colleges: [], years: [], dates: [], streams: [] });
+
 
     const [viewingAssignmentId, setViewingAssignmentId] = useState<number | null>(null);
     const [studentDetails, setStudentDetails] = useState<any[]>([]);
 
     const fetchData = React.useCallback(async () => {
         setIsLoading(true);
-        const [assignmentsData, assessmentsData] = await Promise.all([api.getAssignments(), api.getAssessments()]);
+        const [assignmentsData, assessmentsData, optionsData] = await Promise.all([
+            api.getAssignments(), 
+            api.getAssessments(),
+            api.getStudentFilterOptions()
+        ]);
         setAssignments(assignmentsData);
         setAssessments(assessmentsData);
-        if (assessmentsData.length > 0) {
+        setFilterOptions(optionsData);
+        if (assessmentsData.length > 0 && !selectedAssessmentId) {
             setSelectedAssessmentId(assessmentsData[0].id);
         }
         setIsLoading(false);
-    }, []);
+    }, [selectedAssessmentId]);
 
     useEffect(() => {
         fetchData();
@@ -45,11 +59,15 @@ const AdminAssignmentsPage: React.FC = () => {
             assessment_id: selectedAssessmentId,
             year_of_pass: filterYear,
             stream: filterStream || undefined,
+            college: filterCollege || undefined,
+            date_of_registration: filterDate || undefined,
         });
         
         setName('');
         setFilterYear(undefined);
         setFilterStream('');
+        setFilterCollege('');
+        setFilterDate('');
         setIsCreating(false);
         fetchData();
     };
@@ -64,6 +82,43 @@ const AdminAssignmentsPage: React.FC = () => {
         }
     };
 
+    const handleDelete = async (assignmentId: number) => {
+        if (window.confirm('Are you sure you want to delete this assignment and all its student records? This cannot be undone.')) {
+            await api.deleteAssignment(assignmentId);
+            fetchData();
+        }
+    };
+
+    const handleExportCSV = (assignmentName: string) => {
+        if (studentDetails.length === 0) {
+            alert("No student data to export.");
+            return;
+        }
+
+        const headers = ['Name', 'Email', 'Code'];
+        const rows = studentDetails.map(sd => [
+            `"${sd.studentName}"`, // Enclose in quotes to handle potential commas in names
+            `"${sd.studentEmail}"`,
+            `"${sd.code}"`
+        ]);
+
+        const csvContent = [
+            headers.join(','),
+            ...rows.map(row => row.join(','))
+        ].join('\n');
+
+        const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+        const url = URL.createObjectURL(blob);
+        const link = document.createElement("a");
+        link.setAttribute("href", url);
+        const safeFilename = assignmentName.replace(/[^a-z0-9]/gi, '_').toLowerCase();
+        link.setAttribute("download", `${safeFilename}_student_codes.csv`);
+        document.body.appendChild(link);
+        link.click();
+        document.body.removeChild(link);
+        URL.revokeObjectURL(url);
+    };
+
     return (
         <div>
             <div className="flex justify-between items-center mb-6">
@@ -72,7 +127,7 @@ const AdminAssignmentsPage: React.FC = () => {
                     {isCreating ? 'Cancel' : 'Create New Assignment'}
                 </Button>
             </div>
-            {assessments.length === 0 && <p className="text-orange-600 mb-4">You must create an assessment before creating an assignment.</p>}
+            {assessments.length === 0 && !isLoading && <p className="text-orange-600 mb-4">You must create an assessment before creating an assignment.</p>}
 
             {isCreating && (
                 <Card className="mb-8">
@@ -92,14 +147,31 @@ const AdminAssignmentsPage: React.FC = () => {
                             <h3 className="text-lg font-medium pt-4">Filter Students (Optional)</h3>
                             <div className="grid grid-cols-2 gap-4">
                                 <div>
+                                    <label className="block text-sm font-medium">College</label>
+                                    <select value={filterCollege} onChange={e => setFilterCollege(e.target.value)} className="mt-1 w-full rounded-md border-slate-300 shadow-sm">
+                                        <option value="">All Colleges</option>
+                                        {filterOptions.colleges.map(c => <option key={c} value={c}>{c}</option>)}
+                                    </select>
+                                </div>
+                                <div>
                                     <label className="block text-sm font-medium">Year of Pass</label>
-                                    <input type="number" placeholder="e.g. 2024" value={filterYear || ''} onChange={e => setFilterYear(e.target.value ? Number(e.target.value) : undefined)} className="mt-1 w-full rounded-md border-slate-300 shadow-sm" />
+                                    <select value={filterYear || ''} onChange={e => setFilterYear(e.target.value ? Number(e.target.value) : undefined)} className="mt-1 w-full rounded-md border-slate-300 shadow-sm">
+                                        <option value="">All Years</option>
+                                        {filterOptions.years.map(y => <option key={y} value={y}>{y}</option>)}
+                                    </select>
                                 </div>
                                 <div>
                                     <label className="block text-sm font-medium">Stream</label>
                                     <select value={filterStream} onChange={e => setFilterStream(e.target.value as Stream | '')} className="mt-1 w-full rounded-md border-slate-300 shadow-sm">
                                         <option value="">All Streams</option>
-                                        {Object.values(Stream).map(s => <option key={s} value={s}>{s}</option>)}
+                                        {filterOptions.streams.map(s => <option key={s} value={s}>{s}</option>)}
+                                    </select>
+                                </div>
+                                <div>
+                                    <label className="block text-sm font-medium">Date of Registration</label>
+                                    <select value={filterDate} onChange={e => setFilterDate(e.target.value)} className="mt-1 w-full rounded-md border-slate-300 shadow-sm">
+                                        <option value="">All Dates</option>
+                                        {filterOptions.dates.map(d => <option key={d} value={d}>{d}</option>)}
                                     </select>
                                 </div>
                             </div>
@@ -124,13 +196,21 @@ const AdminAssignmentsPage: React.FC = () => {
                                             <p className="text-sm text-slate-600">Based on: {assessments.find(as => as.id === a.assessment_id)?.name}</p>
                                             <p className="text-sm">Assigned to: {a.total_students} students | Attended: {a.attendees}</p>
                                         </div>
-                                        <Button variant="secondary" size="sm" onClick={() => handleViewDetails(a.id)}>
-                                            {viewingAssignmentId === a.id ? 'Hide Details' : 'View Details'}
-                                        </Button>
+                                        <div className="flex items-center space-x-2 flex-shrink-0">
+                                            <Button variant="secondary" size="sm" onClick={() => handleViewDetails(a.id)}>
+                                                {viewingAssignmentId === a.id ? 'Hide Details' : 'View Details'}
+                                            </Button>
+                                            <Button variant="danger" size="sm" onClick={() => handleDelete(a.id)}>Delete</Button>
+                                        </div>
                                     </div>
                                     {viewingAssignmentId === a.id && (
                                         <div className="mt-4 pt-4 border-t">
-                                            <h4 className="font-semibold mb-2">Assigned Students & Codes</h4>
+                                            <div className="flex justify-between items-center mb-2">
+                                                <h4 className="font-semibold">Assigned Students & Codes</h4>
+                                                <Button variant="secondary" size="sm" onClick={() => handleExportCSV(a.name_of_assignment)}>
+                                                    Export to CSV
+                                                </Button>
+                                            </div>
                                             <div className="max-h-60 overflow-y-auto">
                                                 <table className="min-w-full text-sm">
                                                     <thead><tr><th className="text-left p-1">Name</th><th className="text-left p-1">Email</th><th className="text-left p-1">Code</th></tr></thead>

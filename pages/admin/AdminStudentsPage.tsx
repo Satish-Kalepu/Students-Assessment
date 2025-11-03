@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect, ChangeEvent } from 'react';
 import { api } from '../../services/mockApi';
 import { Student } from '../../types';
@@ -56,7 +55,7 @@ const AdminStudentsPage: React.FC = () => {
                     <CardTitle>Upload Students via CSV</CardTitle>
                 </CardHeader>
                 <CardContent>
-                    <p className="text-sm text-slate-600 mb-4">Upload a CSV file with columns: name, email, mobile, year_of_pass, date_of_registration, stream</p>
+                    <p className="text-sm text-slate-600 mb-4">Upload a CSV file with columns: name, email, mobile, year_of_pass, date_of_registration, stream, college</p>
                     <div className="flex items-center space-x-4">
                         <input 
                             type="file" 
@@ -84,7 +83,9 @@ const AdminStudentsPage: React.FC = () => {
                                     <tr>
                                         <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-slate-500 uppercase tracking-wider">Name</th>
                                         <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-slate-500 uppercase tracking-wider">Email</th>
+                                        <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-slate-500 uppercase tracking-wider">College</th>
                                         <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-slate-500 uppercase tracking-wider">Stream</th>
+                                        <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-slate-500 uppercase tracking-wider">Date of Registration</th>
                                         <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-slate-500 uppercase tracking-wider">Year of Pass</th>
                                     </tr>
                                 </thead>
@@ -93,7 +94,9 @@ const AdminStudentsPage: React.FC = () => {
                                         <tr key={student.id}>
                                             <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-slate-900">{student.name}</td>
                                             <td className="px-6 py-4 whitespace-nowrap text-sm text-slate-500">{student.email}</td>
+                                            <td className="px-6 py-4 whitespace-nowrap text-sm text-slate-500">{student.college}</td>
                                             <td className="px-6 py-4 whitespace-nowrap text-sm text-slate-500">{student.stream}</td>
+                                            <td className="px-6 py-4 whitespace-nowrap text-sm text-slate-500">{student.date_of_registration}</td>
                                             <td className="px-6 py-4 whitespace-nowrap text-sm text-slate-500">{student.year_of_pass}</td>
                                         </tr>
                                     ))}
