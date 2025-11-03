@@ -1,0 +1,5 @@
+{
+  "name": "Candidate Assessment Platform",
+  "description": "An online platform for creating, managing, and conducting candidate assessments. Administrators can manage students, build custom assessments from a pool of skills and questions, and assign them to specific student groups. Students can take timed exams using a unique access code.",
+  "requestFramePermissions": []
+}
