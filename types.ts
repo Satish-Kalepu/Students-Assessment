@@ -11,6 +11,12 @@ export enum QuestionType {
     Code = 'code',
 }
 
+export interface TestCase {
+    input: string;
+    type: 'number' | 'text' | 'list' | 'object';
+    output: string;
+}
+
 export interface AdminUser {
     id: number;
     username: string;
@@ -47,6 +53,7 @@ export interface Question {
     correct_option?: number;
     expected_answer?: string;
     expected_code?: string;
+    test_cases?: TestCase[];
 }
 
 export interface AssessmentSkill {

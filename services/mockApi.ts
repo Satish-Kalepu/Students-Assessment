@@ -29,13 +29,13 @@ let db = {
         { id: 2, name: 'Logical Reasoning', description: 'Questions that test logical thinking and problem-solving abilities.' }
     ] as Skill[],
     skill_questions: [
-        { id: 1, skill_id: 1, question: 'What is 15 + 27?', type: 'choice', option1: '32', option2: '42', option3: '45', option4: '52', correct_option: 2 },
-        { id: 2, skill_id: 1, question: 'What is 12 * 8?', type: 'choice', option1: '96', option2: '108', option3: '84', option4: '112', correct_option: 1 },
-        { id: 3, skill_id: 1, question: 'What is 100 / 4?', type: 'choice', option1: '20', option2: '30', option3: '25', option4: '35', correct_option: 3 },
-        { id: 4, skill_id: 1, question: 'Calculate the sum of the first 10 positive integers.', type: 'answer', expected_answer: '55' },
-        { id: 5, skill_id: 2, question: 'Which number should come next in the pattern? 1, 4, 9, 16, ?', type: 'choice', option1: '20', option2: '25', option3: '30', option4: '36', correct_option: 2 },
-        { id: 6, skill_id: 2, question: 'If all Bloops are Razzies and all Razzies are Lazzies, are all Bloops definitely Lazzies?', type: 'choice', option1: 'Yes', option2: 'No', option3: 'Cannot be determined', option4: 'Maybe', correct_option: 1 },
-        { id: 7, skill_id: 2, question: "A man is looking at a portrait. Someone asks him whose portrait he is looking at. He replies, \"Brothers and sisters I have none, but that man's father is my father's son.\" Who is in the portrait?", type: 'answer', expected_answer: 'His son' }
+        { id: 1, skill_id: 1, question: 'What is 15 + 27?', type: 'choice', option1: '32', option2: '42', option3: '45', option4: '52', correct_option: 2, test_cases: undefined },
+        { id: 2, skill_id: 1, question: 'What is 12 * 8?', type: 'choice', option1: '96', option2: '108', option3: '84', option4: '112', correct_option: 1, test_cases: undefined },
+        { id: 3, skill_id: 1, question: 'What is 100 / 4?', type: 'choice', option1: '20', option2: '30', option3: '25', option4: '35', correct_option: 3, test_cases: undefined },
+        { id: 4, skill_id: 1, question: 'Calculate the sum of the first 10 positive integers.', type: 'answer', expected_answer: '55', test_cases: undefined },
+        { id: 5, skill_id: 2, question: 'Which number should come next in the pattern? 1, 4, 9, 16, ?', type: 'choice', option1: '20', option2: '25', option3: '30', option4: '36', correct_option: 2, test_cases: undefined },
+        { id: 6, skill_id: 2, question: 'If all Bloops are Razzies and all Razzies are Lazzies, are all Bloops definitely Lazzies?', type: 'choice', option1: 'Yes', option2: 'No', option3: 'Cannot be determined', option4: 'Maybe', correct_option: 1, test_cases: undefined },
+        { id: 7, skill_id: 2, question: "A man is looking at a portrait. Someone asks him whose portrait he is looking at. He replies, \"Brothers and sisters I have none, but that man's father is my father's son.\" Who is in the portrait?", type: 'answer', expected_answer: 'His son', test_cases: undefined }
     ] as Question[],
     assessments: [] as Assessment[],
     assignments: [] as Assignment[],
@@ -88,6 +88,20 @@ export const api = {
     },
     
     getSkills: () => simulateDelay(db.skills),
+    createSkill: async (skill: Omit<Skill, 'id'>): Promise<Skill> => {
+        const newSkill = { ...skill, id: db.skills.length + 1 };
+        db.skills.push(newSkill);
+        return simulateDelay(newSkill);
+    },
+
+    getQuestionsForSkill: async (skillId: number): Promise<Question[]> => {
+        return simulateDelay(db.skill_questions.filter(q => q.skill_id === skillId));
+    },
+    createQuestion: async (question: Omit<Question, 'id'>): Promise<Question> => {
+        const newQuestion = { ...question, id: db.skill_questions.length + 1 };
+        db.skill_questions.push(newQuestion);
+        return simulateDelay(newQuestion);
+    },
 
     getAssessments: () => simulateDelay(db.assessments),
     createAssessment: async (assessment: Omit<Assessment, 'id'>): Promise<Assessment> => {

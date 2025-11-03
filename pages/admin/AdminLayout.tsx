@@ -37,6 +37,7 @@ const AdminLayout: React.FC = () => {
                 <aside className="w-64 flex-shrink-0 mr-8">
                     <nav className="flex flex-col p-4 bg-white rounded-lg shadow-md">
                         <NavLink to="/admin/dashboard" className={navLinkClasses}>Dashboard</NavLink>
+                        <NavLink to="/admin/skills" className={navLinkClasses}>Skills & Questions</NavLink>
                         <NavLink to="/admin/students" className={navLinkClasses}>Students</NavLink>
                         <NavLink to="/admin/assessments" className={navLinkClasses}>Assessments</NavLink>
                         <NavLink to="/admin/assignments" className={navLinkClasses}>Assignments</NavLink>

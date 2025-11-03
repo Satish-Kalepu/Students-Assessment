@@ -17,6 +17,7 @@ import AdminLayout from './pages/admin/AdminLayout';
 import AdminStudentsPage from './pages/admin/AdminStudentsPage';
 import AdminAssessmentsPage from './pages/admin/AdminAssessmentsPage';
 import AdminAssignmentsPage from './pages/admin/AdminAssignmentsPage';
+import AdminSkillsPage from './pages/admin/AdminSkillsPage';
 
 import ExamLoginPage from './pages/exam/ExamLoginPage';
 import ExamPage from './pages/exam/ExamPage';
@@ -139,7 +140,7 @@ const StudentProtectedRoute = () => {
 };
 
 
-const App: React.FC = () => {
+const App = () => {
     return (
         <AuthProvider>
             <HashRouter>
@@ -160,6 +161,7 @@ const App: React.FC = () => {
                         <Route element={<AdminLayout />}>
                             <Route index element={<Navigate to="dashboard" replace />} />
                             <Route path="dashboard" element={<AdminDashboardPage />} />
+                            <Route path="skills" element={<AdminSkillsPage />} />
                             <Route path="students" element={<AdminStudentsPage />} />
                             <Route path="assessments" element={<AdminAssessmentsPage />} />
                             <Route path="assignments" element={<AdminAssignmentsPage />} />
